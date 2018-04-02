@@ -1,5 +1,12 @@
 module DeconvolutionTests
 
-# package code goes here
+import DeconvolveDistribution
+using HypothesisTests
+using Distributions
+using StatsBase: sample, midpoints
+
+include("deconvolve.jl")
+include("deconv_boot_test.jl")
+include("test_statistics.jl")
 
 end # module

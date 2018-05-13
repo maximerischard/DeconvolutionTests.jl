@@ -20,7 +20,7 @@ function deconv_boot_test(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::F
     end
     return nabove / niter
 end
-function deconv_boot_stat(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::Function; niter=100)
+function deconv_boot_stat(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::Function; num_t::Int=50, niter=100)
     X_and_Y = cat(1, X, Y)
     σ_X_and_Y = cat(1, σ_X, σ_Y)
     t_obs = t(X, Y, σ_X, σ_Y)
@@ -29,7 +29,7 @@ function deconv_boot_stat(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::F
     n_XY = n_X + n_Y
     t_record = Vector{typeof(t_obs)}(niter)
     xx = collect(linspace(minimum(X_and_Y)-1.0, maximum(X_and_Y)+1.0, 1000))
-    null_CDF = decon(X_and_Y, σ_X_and_Y, 0.3, xx; fixup=true)
+    null_CDF = decon(X_and_Y, σ_X_and_Y, 0.3, xx; num_t=num_t, fixup=true)
     nabove = 0
     for i in 1:niter
         Xboot = [cdf_sample(xx, null_CDF) for _ in 1:n_X]

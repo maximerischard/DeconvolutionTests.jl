@@ -1,0 +1,224 @@
+\documentclass[12pt]{article}
+
+
+\usepackage{dsfont}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{hyperref}
+\usepackage{amsfonts}
+\usepackage{subfigure}
+\usepackage{bm}
+\usepackage[toc,page]{appendix}
+
+
+% pseudo code
+\usepackage[]{algorithm2e}
+
+
+\usepackage{natbib}
+
+\usepackage{geometry}
+% \geometry{margin=1.25in}
+\linespread{1.5}
+
+\newcommand{\R}{\mathbb{R}}
+% \newcommand{\E}{\mathbb{E}}
+\newcommand{\sumi}{\sum_{i = 1}^n}
+\newcommand{\suminf}{\sum_{i = 1}^\infty}   
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+
+% LaTeX macros
+\newcommand{\genericdel}[3]{%
+  \left#1{#3}\right#2
+}
+\newcommand{\del}[1]{\genericdel(){#1}}
+\newcommand{\sbr}[1]{\genericdel[]{#1}}
+\newcommand{\cbr}[1]{\genericdel\{\}{#1}}
+\newcommand{\abs}[1]{\genericdel||{#1}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+% \DeclareMathOperator{\Pr}{\mathbb{p}}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\Ind}{\mathbb{I}}
+\DeclareMathOperator{\V}{\mathbb{V}}
+\DeclareMathOperator{\cov}{Cov}
+\DeclareMathOperator{\var}{Var}
+\DeclareMathOperator{\ones}{\mathbf{1}}
+% \DeclareMathOperator*{\argmin}{arg\,min}
+% \DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\normal}{\mathcal{N}}
+\DeclareMathOperator{\unif}{Uniform}
+\DeclareMathOperator{\poisson}{Poisson}
+\DeclareMathOperator{\dif}{d}
+\newcommand{\od}[2]{\frac{\dif{#1}}{\dif{#2}}}
+\DeclareMathOperator{\Forall}{\forall}
+\newcommand{\iid}{iid}
+\newcommand{\indep}{\perp}
+\newcommand{\trans}{^{\intercal}}
+
+
+
+% Add a color for comments
+\newcommand{\lfc}[1]{\textcolor{Lblue}{{\bf[LFC]} #1}}
+\definecolor{Lblue}{rgb}{0.13, 0.36, 0.51}
+
+\newcommand{\mr}[1]{\textcolor{Mgreen}{{\bf[MR]} #1}}
+\definecolor{Mgreen}{rgb}{0.24, 0.51, 0.25}
+
+
+
+\title{Testing for Equality of Distributions Under Known Additional Measurement Error}
+
+\author{Maxime Riscard, Luis F Campos (or vise versa)}
+
+\date{\today}
+
+
+
+\begin{document}
+
+
+\maketitle
+
+\lfc{This is written extremely loosely for now, just want to get everything down}
+
+\section{Introduction} % (fold)
+\label{sec:introduction}
+
+
+{\bf{Known measurement error in Astronomy and related fields}}:
+
+In the field of Astronomy, Astrophysics, etc. many, if not most, of the measurements astronomers use to answer questions have known measurement error. This error is known (or approximately known) because extensive testing is done on the ground to understand the behavior of potential observations when the observatory goes live. Typically, the data is analyzed without regard to this error, or is accounted for in rudimentary ways, such as reweighing. 
+
+
+{\bf{The specific problem we're thinking about}}:
+
+A problem was brought to us that is commonly found in Astronomy, we have a set of measurements coming from two different sets of galaxies and we want to know if the distributions of these measurements are the same. What is typically done is the measurements are collected and the a simple Kolmogorov-Smirnov Test (\cite{smirnov1948}) is conducted for equality of the distributions. The measurement error remains unaccounted for and invalidates the K-S test when the error is heteroskedastic, or dependent. We seek to find ways to analyze this type of data accounting for known measurement error that is generalizable and theoretically-grounded. But we will confine ourselves to the context of Hypothesis testing for equality of distributions for now.
+
+
+{\bf{Our Strategy}}:
+
+Generally, we use deconvolution (cite) in conjunction with parametric bootstrap to account for known measurement error distributions, then we use simple distributional distance metrics to test the equality of distributions. This strategy is helpful in several ways. The user can select different deconvolution techniques depending on the assumptions about the underlying process they are willing to make. The performance of different deconvolution techniques is dictated by the data (sample size, true distribution) and the measurement error distributions (smooth, super-smooth). Using a parametric bootstrap allows the user to define the measurement error distributions for their specific instrument and measurement. In some situations, practitioners happily assume symmetric super-smooth measurement error distributions, like the Normal distribution. But there are situations, e.g. real positive outcomes, where the measurement errors are not symmetric where other models are better fits. This can be accounted for in the parametric bootstrap since we simulate the error process and can implement it with any known distribution. The strategy also allows us to generalize away from any one test, like the K-S test, by enabling the user to define a test statistic that measures differences in distribution. Giving the user the freedom to select the most meaningful measure of difference for their specific problem. 
+
+% section introduction (end)
+
+\section{Problem Set-Up} % (fold)
+\label{sec:problem_set_up}
+
+In this section we set notation and set of the problem of distributional testing with known measurement error. 
+
+We assume the data following data generating process for our data. 
+
+
+Denote the noise-free outcomes $X_i$ and $Y_j$, these are drawn from distributions $F_X$ and $F_Y$ respectively, $i = 1, ..., n_X$ and $j = 1, ..., n_Y$. We, instead, observe noisy-observations 
+\begin{equation}
+    \widetilde{X_i} = X_i + \epsilon_{X,i}
+    \quad\text{and}\quad
+    \widetilde{Y_j} = Y_j + \epsilon_{Y,j}.
+\end{equation}
+The distribution of the errors are known, for example they can be assumed to be normal
+\begin{equation}
+    \epsilon_{X,i} \sim \normal\del{0, \sigma^2_{X,i}}
+    \quad\text{and}\quad
+    \epsilon_{Y,j} \sim \normal\del{0, \sigma^2_{Y,j}}
+\end{equation}
+with known variances $\sigma^2_{X,i}$ and $\sigma^2_{Y,j}$. Let's collect the known variances into vectors as
+$$\sigma_X = (\sigma_{X,1}, \sigma_{X,2}, ..., \sigma_{X,n_X})
+    \quad\text{and}\quad
+\sigma_Y = (\sigma_{Y,1}, \sigma_{Y,2}, ..., \sigma_{Y,n_Y}).$$
+
+We want to test the equality of the distributions from which the noise-free observations are drawn $H_0: F_X = F_Y$. Under homoskedastic noise, i.e. $\sigma^2_{X,i} = \sigma^2_{Y,i} = \sigma^2$, the distributions of the noisy observations are the same under the null distribution and hence the K-S statistic is valid, though it will lose power as the noise increases. However, under heteroskedastic noise this will not be the case. We use alternative methods for testing this hypothesis. 
+
+% section problem_set_up (end)
+
+
+\section{Methods} % (fold)
+\label{sec:methods}
+
+\subsection{Deconvolution} % (fold)
+\label{sub:deconvolution}
+In this section we describe the deconvolution problem, some methods for performing deconvolution, and concerns in using this for Hypothesis testing. 
+% subsection deconvolution (end)
+
+\subsection{Two-sample tests for equality of distributions} % (fold)
+\label{sub:two_sample_tests_for_equality_of_distributions}
+
+In this section we explain some of the basic details for tests for equality of distributions, when they fail and set up the next section on different measures of distributional equality. 
+
+% subsection two_sample_tests_for_equality_of_distributions (end)
+
+
+\subsection{Test Statistics for Distributional equality} % (fold)
+\label{sub:test_statistics_for_distributional_equality}
+
+Here we explore different measures of distributional similarity equality, KS statistic, AD statistic, Earth Movers, KL, etc. We can discuss their benefits and drawbacks in the context of testing for distributional equality. 
+
+% subsection test_statistics_for_distributional_equality (end)
+
+
+\subsection{Putting the Pieces Together} % (fold)
+\label{sub:putting_the_pieces_together}
+
+As described in Section \ref{sub:deconvolution}, deconvolution involves approximating an underlying distribution of a set of noisy observations when the error's distribution and magnitude are known. So, given the set of observations $\widetilde{X}$ and error magnitudes $\sigma_X$ we can approximate the underlying distribution $F_X$. We denote this application of the deconvolution procedure as
+\begin{equation}
+\widehat{F}_X = \texttt{decon}(\widetilde{X}, \sigma_X).
+\end{equation}
+
+
+
+\begin{algorithm}[H]
+\caption{Testing Equality of Distributions}
+\label{deconv_boot_test}
+
+ \KwData{$\widetilde{X}, \widetilde{Y}$, $\sigma_X, \sigma_Y$}
+ \KwResult{p-value}
+
+ $\phi_{obs} = \Phi(\widetilde{X}, \widetilde{Y})$\\
+ $\widehat{F}_0 = \texttt{decon}((\widetilde{X}, \widetilde{Y}), (\sigma_X, \sigma_Y))$
+
+ \For{$b$ in $1, ..., B$}{
+    \For{$i$ in $1, ..., n_X$}{
+        $X_i^{(b)} \sim \widehat{F}_0 \quad\text{and}\quad
+        \varepsilon_{X,i}^{(b)} \sim N\left(0, \sigma^2_{X,i}\right)$\\
+        $\widetilde{X}_i^{(b)} = X_i^{(b)} +\varepsilon_{X,i}^{(b)}$
+    }
+    \For{$j$ in $1, ..., n_Y$}{
+        $Y_j^{(b)} \sim \widehat{F}_0 \quad\text{and}\quad
+        \varepsilon_{Y,j}^{(b)} \sim N\left(0, \sigma^2_{Y,j}\right)$\\
+        $\widetilde{Y}_j^{(b)} = Y_j^{(b)} +\varepsilon_{Y,j}^{(b)}$
+    }
+    $\phi^{(b)} = \Phi(\widetilde{X}^{(b)}, \widetilde{Y}^{(b)})$
+
+ }
+ Calculate:
+
+ $p = \frac{1}{B}\sum_{i = 1}^B {{\mathds{1}}\{\phi_{obs} > \phi^{(b)}\}}$
+ \caption{How to write algorithms}
+\end{algorithm}
+
+
+% subsection putting_the_pieces_together (end)
+
+
+% section methods (end)
+
+
+
+\section{Simulation Study} % (fold)
+\label{sec:simulation_study}
+
+% section simulation_study (end)
+
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+
+
+\end{document}

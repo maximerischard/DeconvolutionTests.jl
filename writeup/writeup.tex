@@ -16,7 +16,7 @@
 
 
 % pseudo code
-\usepackage[]{algorithm2e}
+\usepackage{algorithm2e}
 
 
 \usepackage{natbib}
@@ -173,11 +173,11 @@ As described in Section \ref{sub:deconvolution}, deconvolution involves approxim
 
 
 \begin{algorithm}[H]
-\caption{Testing Equality of Distributions}
+\caption{Parametric Bootstrap for Testing Equality of Distributions with known and normal noise distributions. It uses a pre-specified deconvolution function $\texttt{decon}(\cdot, \cdot)$ and statistical distance metric $\Phi(\cdot, \cdot)$}
 \label{deconv_boot_test}
 
  \KwData{$\widetilde{X}, \widetilde{Y}$, $\sigma_X, \sigma_Y$}
- \KwResult{p-value}
+ \KwResult{p-value: $p$}
 
  $\phi_{obs} = \Phi(\widetilde{X}, \widetilde{Y})$\\
  $\widehat{F}_0 = \texttt{decon}((\widetilde{X}, \widetilde{Y}), (\sigma_X, \sigma_Y))$
@@ -196,10 +196,8 @@ As described in Section \ref{sub:deconvolution}, deconvolution involves approxim
     $\phi^{(b)} = \Phi(\widetilde{X}^{(b)}, \widetilde{Y}^{(b)})$
 
  }
- Calculate:
-
  $p = \frac{1}{B}\sum_{i = 1}^B {{\mathds{1}}\{\phi_{obs} > \phi^{(b)}\}}$
- \caption{How to write algorithms}
+
 \end{algorithm}
 
 

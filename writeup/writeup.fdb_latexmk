@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex writeup"] 1527803756 "writeup.aux" "writeup.bbl" "writeup" 1527803801
+["bibtex writeup"] 1528140858 "writeup.aux" "writeup.bbl" "writeup" 1528140875
   "/usr/local/texlive/2014/texmf-dist/bibtex/bst/natbib/unsrtnat.bst" 1233624470 24550 a41a6405f4de768c43e871d9fbce2bc8 ""
   "references.bib" 1522261515 427 4ad33a9bc41576134a4c85fb477990a7 ""
-  "writeup.aux" 1527803800 2737 8f39fff81a0f2a571fd27fc651bd7399 ""
+  "writeup.aux" 1528140860 2833 c2e9ff2c17d49fed35027e148a25ccee ""
   "writeup.bcf" 0 -1 0 ""
   (generated)
   "writeup.blg"
   "writeup.bbl"
-["pdflatex"] 1527803799 "writeup.tex" "writeup.pdf" "writeup" 1527803801
+["pdflatex"] 1528140859 "writeup.tex" "writeup.pdf" "writeup" 1528140875
   "/usr/local/texlive/2014/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2014/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy6.tfm" 1246382020 1124 14ccf5552bc7f77ca02a8a402bea8bfb ""
   "/usr/local/texlive/2014/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy7.tfm" 1246382020 1120 7f9f170e8aa57527ad6c49feafd45d54 ""
@@ -183,12 +183,12 @@
   "/usr/local/texlive/2014/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1401025944 1445653 26a0aacf3d70032b1ec192e8c7792117 ""
   "/usr/local/texlive/2014/texmf-var/web2c/pdftex/pdflatex.fmt" 1401025990 3832012 904d82bdcc8abf2b1cd296990b82553b ""
   "/usr/local/texlive/2014/texmf.cnf" 1401025936 577 a59edbde8d3a8c549d0eeaab1739e2ff ""
-  "writeup.aux" 1527803800 2737 8f39fff81a0f2a571fd27fc651bd7399 ""
-  "writeup.bbl" 1527803757 591 bc92d03d03577d3c29f75952bfd4e02d "bibtex writeup"
-  "writeup.out" 1527803800 514 e8d3afde32231005b99b0b5193b4e205 ""
-  "writeup.tex" 1527803798 9630 51909374409213990c7d2ebf55090cfc ""
+  "writeup.aux" 1528140860 2833 c2e9ff2c17d49fed35027e148a25ccee ""
+  "writeup.bbl" 1528140859 591 bc92d03d03577d3c29f75952bfd4e02d "bibtex writeup"
+  "writeup.out" 1528140860 514 e8d3afde32231005b99b0b5193b4e205 ""
+  "writeup.tex" 1528140875 9785 2e6fea13c5a5a3fcfc276a6aee2054f4 ""
   (generated)
-  "writeup.aux"
   "writeup.pdf"
-  "writeup.out"
   "writeup.log"
+  "writeup.aux"
+  "writeup.out"

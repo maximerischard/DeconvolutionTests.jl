@@ -1,43 +1,51 @@
-function deconv_boot_test(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::Function; niter=100)
-    X_and_Y = cat(1, X, Y)
-    σ_X_and_Y = cat(1, σ_X, σ_Y)
+function deconv_boot_test(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::Function, method::DeconvolutionMethod; niter=100)
+    X_and_Y = cat(X, Y, dims=1)
+    σ_X_and_Y = cat(σ_X, σ_Y, dims=1)
+
+    ϵ_X = Normal.(0.0, σ_X)
+    ϵ_Y = Normal.(0.0, σ_Y)
+    ϵ_X_and_Y = Normal.(0.0, σ_X_and_Y)
+
     t_obs = t(X, Y, σ_X, σ_Y)
     n_X = length(X)
     n_Y = length(Y)
     n_XY = n_X + n_Y
-    xx = collect(linspace(minimum(X_and_Y)-1.0, maximum(X_and_Y)+1.0, 1000))
-    null_CDF = decon(X_and_Y, σ_X_and_Y, 0.3, xx; fixup=true)
+    null_decon = decon(method, X_and_Y, ϵ_X_and_Y)
     nabove = 0
     for i in 1:niter
-        Xboot = [cdf_sample(xx, null_CDF) for _ in 1:n_X]
-        Yboot = [cdf_sample(xx, null_CDF) for _ in 1:n_Y]
-        Xtilde = Xboot .+ σ_X.*randn(n_X)
-        Ytilde = Yboot .+ σ_Y.*randn(n_Y)
-        t_perm = t(Xtilde, Ytilde, σ_X, σ_Y)
-        if t_perm > t_obs
+        Xboot = rand(null_decon, n_X)
+        Yboot = rand(null_decon, n_Y)
+        Xtilde = Xboot .+ rand.(ϵ_X)
+        Ytilde = Yboot .+ rand.(ϵ_Y)
+        t_boot = t(Xtilde, Ytilde, σ_X, σ_Y)
+        if t_boot > t_obs
             nabove += 1
         end
     end
     return nabove / niter
 end
-function deconv_boot_stat(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::Function; num_t::Int=50, niter=100)
-    X_and_Y = cat(1, X, Y)
-    σ_X_and_Y = cat(1, σ_X, σ_Y)
+
+function deconv_boot_stat(X::Vector, Y::Vector, σ_X::Vector, σ_Y::Vector, t::Function, method::DeconvolutionMethod; niter=100)
+    X_and_Y = cat(X, Y, dims=1)
+    σ_X_and_Y = cat(σ_X, σ_Y, dims=1)
+
+    ϵ_X = Normal.(0.0, σ_X)
+    ϵ_Y = Normal.(0.0, σ_Y)
+    ϵ_X_and_Y = Normal.(0.0, σ_X_and_Y)
+
     t_obs = t(X, Y, σ_X, σ_Y)
     n_X = length(X)
     n_Y = length(Y)
     n_XY = n_X + n_Y
     t_record = Vector{typeof(t_obs)}(niter)
-    xx = collect(linspace(minimum(X_and_Y)-1.0, maximum(X_and_Y)+1.0, 1000))
-    null_CDF = decon(X_and_Y, σ_X_and_Y, 0.3, xx; num_t=num_t, fixup=true)
-    nabove = 0
+    null_decon = decon(method, X_and_Y, ϵ_X_and_Y)
     for i in 1:niter
-        Xboot = [cdf_sample(xx, null_CDF) for _ in 1:n_X]
-        Yboot = [cdf_sample(xx, null_CDF) for _ in 1:n_Y]
-        Xtilde = Xboot .+ σ_X.*randn(n_X)
-        Ytilde = Yboot .+ σ_Y.*randn(n_Y)
-        t_perm = t(Xtilde, Ytilde, σ_X, σ_Y)
-        t_record[i] = t_perm
+        Xboot = rand(null_decon, n_X)
+        Yboot = rand(null_decon, n_Y)
+        Xtilde = Xboot .+ rand.(ϵ_X)
+        Ytilde = Yboot .+ rand.(ϵ_Y)
+        t_boot = t(Xtilde, Ytilde, σ_X, σ_Y)
+        t_record[i] = t_boot
     end
     return t_record
 end

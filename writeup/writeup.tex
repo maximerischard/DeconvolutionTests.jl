@@ -157,10 +157,22 @@ In this section we explain some of the basic details for tests for equality of d
 \subsection{Test Statistics for Distributional equality} % (fold)
 \label{sub:test_statistics_for_distributional_equality}
 
-Here we explore different measures of distributional similarity equality, KS statistic, AD statistic, Earth Movers, KL, etc. We can discuss their benefits and drawbacks in the context of testing for distributional equality. 
+Here we explore different measures of distributional similarity, KS statistic, AD statistic, Earth Movers, KL, etc. We can discuss their benefits and drawbacks in the context of testing. 
 
+For example, we could calculate the KS distance with the observed noisy data, i.e. 
 
-Here we can include a deconvolution step in implementing $\Phi$, i.e. $\Phi(\tilde{X}, \tilde{Y}) = KS(\texttt{decon}(\widetilde{X}, \sigma_X), \texttt{decon}(\widetilde{Y}, \sigma_Y))$
+\begin{align*}
+    \Phi(\tilde{X}, \tilde{Y}) = KS(\hat{F}_{\tilde{X}}, \hat{F}_{\tilde{Y}})
+\end{align*}
+
+This would compare the empirical distributions of the noisy data and return small values for cases where $\hat{F}_{\tilde{X}}$ is close to $\hat{F}_{\tilde{Y}}$ in the KS sense. 
+
+We can also discuss their relationship to particular form of deconvolution and discuss how to include a deconvolution step in implementing $\Phi$. For example 
+\begin{align*}
+\Phi(\tilde{X}, \tilde{Y}) = KS(\texttt{decon}(\widetilde{X}, \sigma_X), \texttt{decon}(\widetilde{Y}, \sigma_Y))    
+\end{align*}
+
+Here, we would be accounting for calculating the distances between the "correct" distributions because $\texttt{decon}(\widetilde{X}, \sigma_X)$ is approximating $F_X$ and this comparison will be similar to the ideal noiseless compatison $\Phi(X, Y) = KS(\hat{F}_X, \hat{F}_Y)$. 
 
 % subsection test_statistics_for_distributional_equality (end)
 

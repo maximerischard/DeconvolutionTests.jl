@@ -159,6 +159,9 @@ In this section we explain some of the basic details for tests for equality of d
 
 Here we explore different measures of distributional similarity equality, KS statistic, AD statistic, Earth Movers, KL, etc. We can discuss their benefits and drawbacks in the context of testing for distributional equality. 
 
+
+Here we can include a deconvolution step in implementing $\Phi$, i.e. $\Phi(\tilde{X}, \tilde{Y}) = KS(\texttt{decon}(\widetilde{X}, \sigma_X), \texttt{decon}(\widetilde{Y}, \sigma_Y))$
+
 % subsection test_statistics_for_distributional_equality (end)
 
 
@@ -211,7 +214,53 @@ As described in Section \ref{sub:deconvolution}, deconvolution involves approxim
 \section{Simulation Study} % (fold)
 \label{sec:simulation_study}
 
+
+\subsection{Homoeskedastic Error} % (fold)
+\label{sub:homoeskedastic_error}
+
+I claim this above:
+Under homoskedastic noise, i.e. $\sigma^2_{X,i} = \sigma^2_{Y,i} = \sigma^2$, the distributions of the noisy observations are the same under the null distribution and hence the K-S statistic is valid. 
+
+Claim:  
+
+Is this true? Let's compare the relative power of using KS directly to using our proposed method.
+
+% subsection homoeskedastic_error (end)
+
+\subsection{Deconvolve and Test?} % (fold)
+\label{sub:deconvolve_and_test}
+
+A separate method has been proposed for this [Paul Green paper]. We could apply deconvolution to the two sets of data separately 
+
+\begin{align*}
+	\widehat{F}_X = \texttt{decon}(\widetilde{X}, \sigma_X)\\
+	\widehat{F}_Y = \texttt{decon}(\widetilde{Y}, \sigma_Y)
+\end{align*}
+ and compare these two distributions directly. Our intuition is that this will be conservative and underpowered. It is unclear as to how this will perform under large samples -- let's investigate. Even if this performs well under large sample, hell even if this has the correct size when $n_x, n_Y \rightarrow \infty$, it is still a large sample argument. 
+
+% subsection deconvolve_and_test (end)
+
+\subsection{Heteroskedastic but equal} % (fold)
+\label{sub:heteroskedastic_but_equal}
+
+Heteroskedastic errors with equal distributions. Set it so that $\sigma_{X_i} \sim \sigma_{Y_j}$ with increasing variability of variances, i.e. start at homoskedatic and create increasingly variable variances. 
+
+
+% subsection heteroskedastic_but_equal (end)
+
+
 % section simulation_study (end)
+
+
+
+
+\section{Future Work} % (fold)
+\label{sec:future_work}
+
+The choice of deconvolution and distribution comparison methods discussed in Sections \ref{sub:deconvolution} and \ref{sub:test_statistics_for_distributional_equality} will absolutely have an impact on the power of the resulting test. For example, some deconvolution methods work under additional assumptions and hence, if those assumptions are correct, would have faster convergence rates. Under $H_0$ this would imply... F0 close to F0hat. This could be negated by ... tests that are insentitive to defficiencies in deconvolution methods. For example, the kernel-based methods have poor tail approximation behavior, but comparing some distance metrics, like earth movers(?) may be less sensitive to the tails and hence the resulting null distribution will not be affected. We shouold investigate this interaction further. 
+
+% section future_work (end)
+
 
 
 \bibliographystyle{unsrtnat}

@@ -1,5 +1,18 @@
 \documentclass[12pt]{article}
 
+\usepackage[unicode=true,bookmarks=true,bookmarksnumbered=false,bookmarksopen=false,breaklinks=false,pdfborder={0 0 0},pdfborderstyle={},backref=page,colorlinks=true]{hyperref}
+
+% for references
+\def\sectionautorefname{Section}
+\def\Appendixautorefname{Appendix}
+\def\thmautorefname{Theorem}
+\def\corolcounterautorefname{Corollary}
+\def\subsectionautorefname{Section}
+\def\subsubsectionautorefname{Section}
+\def\subsubsubsectionautorefname{Section}
+\def\figureautorefname{Figure}
+\def\tableautorefname{Table}
+\def\equationautorefname~#1\null{(#1)\null}
 
 \usepackage{dsfont}
 
@@ -8,32 +21,37 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes}
-\usepackage{hyperref}
 \usepackage{amsfonts}
-\usepackage{subfigure}
+\usepackage{subcaption}
 \usepackage{bm}
 \usepackage[toc,page]{appendix}
 
 
 % pseudo code
-\usepackage{algorithm2e}
+\usepackage[ruled]{algorithm2e}
+
+\def\algorithmautorefname{Algorithm}
 
 
 \usepackage{natbib}
 
 \usepackage{geometry}
+\graphicspath{{../figures/}}
 % \geometry{margin=1.25in}
 \linespread{1.5}
 
-\newcommand{\R}{\mathbb{R}}
-% \newcommand{\E}{\mathbb{E}}
-\newcommand{\sumi}{\sum_{i = 1}^n}
-\newcommand{\suminf}{\sum_{i = 1}^\infty}   
-\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
-\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
 
+\makeatletter
+\newcommand*{\iid}{%
+    \@ifnextchar{.}%
+        {i.\,i.\,d}%
+        {i.\,i.\,d.\@}%
+}
+\makeatother
+\newcommand{\mathiid}{\text{\iid}}
+\newcommand{\simiid}{\overset{\mathiid}{\sim}}
 
-% LaTeX macros
+% General macros
 \newcommand{\genericdel}[3]{%
   \left#1{#3}\right#2
 }
@@ -58,11 +76,19 @@
 \DeclareMathOperator{\dif}{d}
 \newcommand{\od}[2]{\frac{\dif{#1}}{\dif{#2}}}
 \DeclareMathOperator{\Forall}{\forall}
-\newcommand{\iid}{iid}
 \newcommand{\indep}{\perp}
 \newcommand{\trans}{^{\intercal}}
+\newcommand{\reals}{\mathbb{R}}
 
 
+% Macros specific to this paper %
+\newcommand{\power}{\beta}
+\newcommand{\alldistribs}{\mathcal{F}}
+\newcommand{\Xtilde}{\tilde{X}}
+\newcommand{\Ytilde}{\tilde{Y}}
+\newcommand{\decon}{\mathtt{decon}}
+\newcommand{\Fhat}{\hat{F}}
+\newcommand{\pdiff}{\delta}
 
 % Add a color for comments
 \newcommand{\lfc}[1]{\textcolor{Lblue}{{\bf[LFC]} #1}}
@@ -72,15 +98,11 @@
 \definecolor{Mgreen}{rgb}{0.24, 0.51, 0.25}
 
 
-
 \title{Testing for Equality of Distributions Under Known Additional Measurement Error}
 
-\author{Maxime Riscard, Luis F Campos (or vise versa)}
+\author{Luis F Campos, Maxime Rischard}
 
 \date{\today}
-
-
-
 \begin{document}
 
 
@@ -111,32 +133,67 @@ Generally, we use deconvolution (cite) in conjunction with parametric bootstrap 
 \section{Problem Set-Up} % (fold)
 \label{sec:problem_set_up}
 
-In this section we set notation and set of the problem of distributional testing with known measurement error. 
+In this section we set notation and the problem of distributional testing with known measurement error. 
+We assume the following data generating process for our data. 
 
-We assume the data following data generating process for our data. 
-
-
-Denote the noise-free outcomes $X_i$ and $Y_j$, these are drawn from distributions $F_X$ and $F_Y$ respectively, $i = 1, ..., n_X$ and $j = 1, ..., n_Y$. We, instead, observe noisy-observations 
+Denote the noise-free outcomes $X_i$, $i = 1,\dotsc,n_x$ and $Y_j$, $j=1,\dotsc,n_Y$:
 \begin{equation}
-    \widetilde{X_i} = X_i + \epsilon_{X,i}
+\begin{split}
+    X_i &\simiid F_X,\quad F_X \in \alldistribs \,, \\
+    Y_j &\simiid F_y,\quad F_Y \in \alldistribs \,,
+\end{split}
+\end{equation}
+where $\alldistribs$ is the set of all continuous and univariate probability measures.
+
+We do not directly observe the noise-free outcomes, instead we measure the noisy observations 
+\begin{equation}
+    \Xtilde_i = X_i + \epsilon_{X,i}
     \quad\text{and}\quad
-    \widetilde{Y_j} = Y_j + \epsilon_{Y,j}.
+    \Ytilde_j = Y_j + \epsilon_{Y,j}.
+    \label{eq:xytilde}
 \end{equation}
 The distribution of the errors are known, for example they can be assumed to be normal
 \begin{equation}
-    \epsilon_{X,i} \sim \normal\del{0, \sigma^2_{X,i}}
+    \epsilon_{X,i} \simiid \normal\del{0, \sigma^2_{X,i}}
     \quad\text{and}\quad
-    \epsilon_{Y,j} \sim \normal\del{0, \sigma^2_{Y,j}}
+    \epsilon_{Y,j} \simiid \normal\del{0, \sigma^2_{Y,j}}
 \end{equation}
 with known variances $\sigma^2_{X,i}$ and $\sigma^2_{Y,j}$. Let's collect the known variances into vectors as
 $$\sigma_X = (\sigma_{X,1}, \sigma_{X,2}, ..., \sigma_{X,n_X})
     \quad\text{and}\quad
 \sigma_Y = (\sigma_{Y,1}, \sigma_{Y,2}, ..., \sigma_{Y,n_Y}).$$
 
-We want to test the equality of the distributions from which the noise-free observations are drawn $H_0: F_X = F_Y$. Under homoskedastic noise, i.e. $\sigma^2_{X,i} = \sigma^2_{Y,i} = \sigma^2$, the distributions of the noisy observations are the same under the null distribution and hence the K-S statistic is valid, though it will lose power as the noise increases. However, under heteroskedastic noise this will not be the case. We use alternative methods for testing this hypothesis. 
+We want to test the equality of the distributions from which the noise-free observations are drawn $H_0: F_X = F_Y$. 
+A more formal statement of the hypotheses is:
+\begin{equation}
+\begin{split}
+    & (F_X, F_Y) \in \alldistribs \times \alldistribs \equiv \Omega \\
+    H_0:& (F_X, F_Y) \in \Omega_0,\quad \Omega_0 = \cbr{(F_A, F_B) \in \alldistribs \times \alldistribs,\ s.t.\ F_A =    F_B } \\
+    H_1:& (F_X, F_Y) \in \Omega_1,\quad \Omega_1 = \cbr{(F_A, F_B) \in \alldistribs \times \alldistribs,\ s.t.\ F_A \neq F_B } \\
+\end{split}
+\end{equation}
+which makes it clearer that the hypotheses partition the joint space $\alldistribs \times \alldistribs$
+with $\Omega_0 \cap \Omega_1 = \emptyset$ and $\Omega_0 \cup \Omega_1 = \alldistribs \times \alldistribs$.
 
-% section problem_set_up (end)
+Our goal is to devise a hypothesis test which can distinguish $H_0$ and $H_1$.
+We encode the hypothesis test with a test function $\varphi: \reals^{n_X} \times \reals^{n_Y} \to \{0, 1\}$
+which takes in the noisy observations and returns either 0 (the null hypothesis is chosen) or 1 (the alternative is chosen).
+The test function can also make use of the known noise variances $\sigma_X^2$ and $\sigma_Y^2$, but we suppress this in the notation for concision.
+We further define the power of the test:
+\begin{equation}
+    \power(F_X, F_Y) = \E_{F_X,F_Y}\sbr{\varphi(\Xtilde, \Ytilde)}
+\end{equation}
+where $\E_{F_X,F_Y}$ denotes expectations with respect to $X$, $Y$, $\epsilon_X$ and $\epsilon_Y$.
+We also define the significance
+\begin{equation}
+    \alpha = \sup_{(F_X,F_Y) \in \Omega_0}\del{ \power(F_X, F_Y) } = \sup_{F \in \alldistribs}\del{ \power(F, F) }\,,
+    \label{eq:significance}
+\end{equation}
+the supremum of the power under the null hypothesis.
+Under the classical hypothesis testing framework, we choose a nominal significance $\alpha^*$,
+and then design a test function $\varphi$ which maximizes the power while satisfying $\alpha < \alpha^*$.
 
+Under homoskedastic noise, i.e. $\sigma^2_{X,i} = \sigma^2_{Y,i} = \sigma^2$, the distributions of the noisy observations are the same under the null distribution and hence the K-S statistic is valid, though it will lose power as the noise increases. However, under heteroskedastic noise this will not be the case. We use alternative methods for testing this hypothesis. 
 
 \section{Methods} % (fold)
 \label{sec:methods}
@@ -169,10 +226,10 @@ This would compare the empirical distributions of the noisy data and return smal
 
 We can also discuss their relationship to particular form of deconvolution and discuss how to include a deconvolution step in implementing $\Phi$. For example 
 \begin{align*}
-\Phi(\tilde{X}, \tilde{Y}) = KS(\texttt{decon}(\widetilde{X}, \sigma_X), \texttt{decon}(\widetilde{Y}, \sigma_Y))    
+\Phi(\tilde{X}, \tilde{Y}) = KS(\decon(\Xtilde; \sigma_X), \decon(\Ytilde; \sigma_Y))    
 \end{align*}
 
-Here, we would be accounting for calculating the distances between the "correct" distributions because $\texttt{decon}(\widetilde{X}, \sigma_X)$ is approximating $F_X$ and this comparison will be similar to the ideal noiseless compatison $\Phi(X, Y) = KS(\hat{F}_X, \hat{F}_Y)$. 
+Here, we would be accounting for calculating the distances between the "correct" distributions because $\decon(\Xtilde; \sigma_X)$ is approximating $F_X$ and this comparison will be similar to the ideal noiseless compatison $\Phi(X, Y) = KS(\hat{F}_X, \hat{F}_Y)$. 
 
 % subsection test_statistics_for_distributional_equality (end)
 
@@ -180,43 +237,110 @@ Here, we would be accounting for calculating the distances between the "correct"
 \subsection{Putting the Pieces Together} % (fold)
 \label{sub:putting_the_pieces_together}
 
-As described in Section \ref{sub:deconvolution}, deconvolution involves approximating an underlying distribution of a set of noisy observations when the error's distribution and magnitude are known. So, given the set of observations $\widetilde{X}$ and error magnitudes $\sigma_X$ we can approximate the underlying distribution $F_X$. We denote this application of the deconvolution procedure as
+As described in \autoref{sub:deconvolution}, deconvolution involves approximating an underlying distribution of a set of noisy observations when the error's distribution and magnitude are known. So, given the set of observations $\Xtilde$ and error magnitudes $\sigma_X$ we can approximate the underlying distribution $F_X$. We denote this application of the deconvolution procedure as
 \begin{equation}
-\widehat{F}_X = \texttt{decon}(\widetilde{X}, \sigma_X).
+\Fhat_X = \decon(\Xtilde; \sigma_X).
 \end{equation}
 
+\begin{algorithm}[t]
+\caption{Bootstrap test for $F_X=F_Y=F_0$, where $F_0$ is a pre-specified distribution that can be sampled from.
+The test statistic $\Phi(\cdot, \cdot)$ is also pre-specified.
+\label{algo:bootstraptest}
+}
 
-
-\begin{algorithm}[H]
-\caption{Parametric Bootstrap for Testing Equality of Distributions with known and normal noise distributions. It uses a pre-specified deconvolution function $\texttt{decon}(\cdot, \cdot)$ and statistical distance metric $\Phi(\cdot, \cdot)$}
-\label{deconv_boot_test}
-
- \KwData{$\widetilde{X}, \widetilde{Y}$, $\sigma_X, \sigma_Y$}
+ \KwData{$\Xtilde, \Ytilde$, $\sigma_X, \sigma_Y$}
  \KwResult{p-value: $p$}
 
- $\phi_{obs} = \Phi(\widetilde{X}, \widetilde{Y})$\\
- $\widehat{F}_0 = \texttt{decon}((\widetilde{X}, \widetilde{Y}), (\sigma_X, \sigma_Y))$
+ $\phi_{obs} = \Phi(\Xtilde, \Ytilde)$\\
 
  \For{$b$ in $1, ..., B$}{
     \For{$i$ in $1, ..., n_X$}{
-        $X_i^{(b)} \sim \widehat{F}_0 \quad\text{and}\quad
+        $X_i^{(b)} \sim F_0 \quad\text{and}\quad
         \varepsilon_{X,i}^{(b)} \sim N\left(0, \sigma^2_{X,i}\right)$\\
-        $\widetilde{X}_i^{(b)} = X_i^{(b)} +\varepsilon_{X,i}^{(b)}$
+        $\Xtilde_i^{(b)} = X_i^{(b)} +\varepsilon_{X,i}^{(b)}$
     }
     \For{$j$ in $1, ..., n_Y$}{
-        $Y_j^{(b)} \sim \widehat{F}_0 \quad\text{and}\quad
+        $Y_j^{(b)} \sim F_0 \quad\text{and}\quad
         \varepsilon_{Y,j}^{(b)} \sim N\left(0, \sigma^2_{Y,j}\right)$\\
-        $\widetilde{Y}_j^{(b)} = Y_j^{(b)} +\varepsilon_{Y,j}^{(b)}$
+        $\Ytilde_j^{(b)} = Y_j^{(b)} +\varepsilon_{Y,j}^{(b)}$
     }
-    $\phi^{(b)} = \Phi(\widetilde{X}^{(b)}, \widetilde{Y}^{(b)})$
+    $\phi^{(b)} = \Phi(\Xtilde^{(b)}, \Ytilde^{(b)})$
 
  }
  $p = \frac{1}{B}\sum_{i = 1}^B {{\mathds{1}}\{\phi_{obs} > \phi^{(b)}\}}$
 
 \end{algorithm}
 
+\begin{algorithm}[t]
+\caption{Parametric Bootstrap for Testing Equality of Distributions with known and normal noise distributions. It uses a pre-specified deconvolution function $\decon(\cdot; \cdot)$ and statistical distance metric $\Phi(\cdot, \cdot)$
+\label{algo:deconvtest}
+}
+
+ \KwData{$\Xtilde, \Ytilde$, $\sigma_X, \sigma_Y$}
+ \KwResult{p-value: $p$}
+
+ $\Fhat_0 = \decon((\Xtilde; \Ytilde), (\sigma_X, \sigma_Y))$
+
+ Return the $p$-value from \autoref{algo:bootstraptest} with $F_0 = \Fhat_0$.
+
+\end{algorithm}
 
 % subsection putting_the_pieces_together (end)
+
+\subsection{Validity}
+\label{sec:validity}
+
+We turn to the question of the validity of the tests defined by \autoref{algo:bootstraptest}
+and \autoref{algo:deconvtest},
+where validity means that the condition $\alpha \leq \alpha^*$ is satisfied.
+To be explicit, the test function under consideration is $\varphi(\Xtilde,\Ytilde) = \Ind\cbr{p \leq \alpha^*}$,
+where $p$ is the output of each algorithm.
+
+
+\begin{figure}[t]
+    \centering
+    \begin{subfigure}[t]{0.4\textwidth}
+    \includegraphics[height=2in]{{pdiff}.pdf}
+    \caption{
+        Bootstrap test.
+    \label{fig:pdiff}
+    }
+    \end{subfigure}
+    \caption{
+        Validity of the bootstrap test.
+        \label{fig:validity}
+    }
+\end{figure}
+
+In \autoref{algo:bootstraptest}, the boostrap is used to obtain the distribution of the test statistic under $F_X = F_Y = F_0$,
+where $F_0$ is pre-specified.
+It follows that if it is indeed the case that $F_X = F_Y = F_0$, then the $p$-value is approximately uniformly distributed (exactly as $B \to \infty$), 
+and therefore $\power(F_0, F_0)=\alpha^*$.
+However, it does not follow that $\alpha=\alpha^*$, 
+as there may very well exist a different $F' \in \alldistribs$
+for which $\power(F', F') > \alpha^*$.
+We can decompose the significance \autoref{eq:significance} into
+\begin{equation}
+    \alpha =  \power(F_0, F_0) + \sup_{F' \in \alldistribs}
+            \big( \underbrace{
+                        \power(F', F') - \power(F_0,F_0) 
+                  }_{\equiv \pdiff(F_0,F')} \big)
+    \,,
+\end{equation}
+and the difference in power $\pdiff(F_0,F')$ can be seen to be the 
+probability under $F'$ of the test statistic exceeding its $(1-\alpha^*)$
+quantile under $F_0$ minus $\alpha^*$ (illustrated in \autoref{fig:pdiff}).
+The implication is that it is desirable for the distribution of the test
+statistic under the null to be as insensitive as possible to choice of $F_0$.
+Asymptotically, this property is perfectly achieved by the Kolmogorov-Smirnov test statistic
+\mr{is this true? what's the exact statement?}.
+
+So far, we have assumed that $F_0$ is pre-chosen completely arbitrarily.
+If the true null distribution $F_0^\star$ was known, we would simply choose
+$F_0=F_0^\star$ which would guarantee $\alpha=\alpha^*$.
+With $F_0^\star$ unknown, it remains desirable to choose an $\Fhat_0$ that is close to $F_0^\star$,
+so that $\pdiff(\Fhat_0,F_0^\star)$ is small.
+This is the aim of the deconvolution step in \autoref{algo:deconvtest}.
 
 
 % section methods (end)
@@ -227,8 +351,8 @@ As described in Section \ref{sub:deconvolution}, deconvolution involves approxim
 \label{sec:simulation_study}
 
 
-\subsection{Homoeskedastic Error} % (fold)
-\label{sub:homoeskedastic_error}
+\subsection{Homoskedastic Error} % (fold)
+\label{sub:homoskedastic_error}
 
 I claim this above:
 Under homoskedastic noise, i.e. $\sigma^2_{X,i} = \sigma^2_{Y,i} = \sigma^2$, the distributions of the noisy observations are the same under the null distribution and hence the K-S statistic is valid. 
@@ -237,7 +361,7 @@ Claim:
 
 Is this true? Let's compare the relative power of using KS directly to using our proposed method.
 
-% subsection homoeskedastic_error (end)
+% subsection homoskedastic_error (end)
 
 \subsection{Deconvolve and Test?} % (fold)
 \label{sub:deconvolve_and_test}
@@ -245,8 +369,8 @@ Is this true? Let's compare the relative power of using KS directly to using our
 A separate method has been proposed for this [Paul Green paper]. We could apply deconvolution to the two sets of data separately 
 
 \begin{align*}
-	\widehat{F}_X = \texttt{decon}(\widetilde{X}, \sigma_X)\\
-	\widehat{F}_Y = \texttt{decon}(\widetilde{Y}, \sigma_Y)
+	\Fhat_X = \decon(\Xtilde; \sigma_X)\\
+	\Fhat_Y = \decon(\Ytilde; \sigma_Y)
 \end{align*}
  and compare these two distributions directly. Our intuition is that this will be conservative and underpowered. It is unclear as to how this will perform under large samples -- let's investigate. Even if this performs well under large sample, hell even if this has the correct size when $n_x, n_Y \rightarrow \infty$, it is still a large sample argument. 
 
@@ -269,7 +393,7 @@ Heteroskedastic errors with equal distributions. Set it so that $\sigma_{X_i} \s
 \section{Future Work} % (fold)
 \label{sec:future_work}
 
-The choice of deconvolution and distribution comparison methods discussed in Sections \ref{sub:deconvolution} and \ref{sub:test_statistics_for_distributional_equality} will absolutely have an impact on the power of the resulting test. For example, some deconvolution methods work under additional assumptions and hence, if those assumptions are correct, would have faster convergence rates. Under $H_0$ this would imply... F0 close to F0hat. This could be negated by ... tests that are insentitive to defficiencies in deconvolution methods. For example, the kernel-based methods have poor tail approximation behavior, but comparing some distance metrics, like earth movers(?) may be less sensitive to the tails and hence the resulting null distribution will not be affected. We shouold investigate this interaction further. 
+The choice of deconvolution and distribution comparison methods discussed in \autoref{sub:deconvolution} and \autoref{sub:test_statistics_for_distributional_equality} will absolutely have an impact on the power of the resulting test. For example, some deconvolution methods work under additional assumptions and hence, if those assumptions are correct, would have faster convergence rates. Under $H_0$ this would imply... F0 close to F0hat. This could be negated by ... tests that are insentitive to defficiencies in deconvolution methods. For example, the kernel-based methods have poor tail approximation behavior, but comparing some distance metrics, like earth movers(?) may be less sensitive to the tails and hence the resulting null distribution will not be affected. We shouold investigate this interaction further. 
 
 % section future_work (end)
 
